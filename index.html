@@ -1,0 +1,340 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Biometric Health Tracker - Login</title>
+<style>
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background:linear-gradient(135deg,#141e30,#243b55);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    color:white;
+    transition:0.3s;
+}
+.light-mode{
+    background:linear-gradient(135deg,#e3f2fd,#bbdefb);
+    color:black;
+}
+.container{
+    width:380px;
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(12px);
+    padding:25px;
+    border-radius:15px;
+    text-align:center;
+    position:relative;
+}
+.toggle-mode{
+    position:absolute;
+    top:15px;
+    right:15px;
+    cursor:pointer;
+    font-size:14px;
+}
+.language-select{
+    position:absolute;
+    top:15px;
+    left:15px;
+    font-size:14px;
+    cursor:pointer;
+    background:rgba(255,255,255,0.2);
+    border:none;
+    color:white;
+    padding:3px 6px;
+    border-radius:5px;
+}
+.logo{
+    font-size:26px;
+}
+.logo span{
+    font-size:13px;
+    display:block;
+    opacity:0.8;
+}
+input{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border:none;
+    border-radius:6px;
+}
+.password-box{
+    position:relative;
+}
+.eye{
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+    cursor:pointer;
+    font-size:18px;
+}
+.strength{
+    font-size:12px;
+    text-align:left;
+}
+button{
+    width:100%;
+    padding:10px;
+    margin-top:8px;
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    cursor:pointer;
+}
+.login-btn{ background:#00c6ff; color:white; }
+.face-btn{ background:#ff9800; color:white; }
+.finger-btn{ background:#9c27b0; color:white; }
+.link{
+    font-size:12px;
+    margin-top:6px;
+    cursor:pointer;
+    color:#00f2fe;
+}
+.scan{
+    margin-top:10px;
+    font-size:13px;
+}
+.scan-circle{
+    margin:10px auto;
+    width:60px;
+    height:60px;
+    border:4px solid rgba(255,255,255,0.3);
+    border-top:4px solid #00ffdd;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+}
+@keyframes spin{
+    0%{transform:rotate(0deg);}
+    100%{transform:rotate(360deg);}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <select class="language-select" id="langSelect" onchange="changeLang()">
+        <option value="en">English</option>
+        <option value="ml">മലയാളം</option>
+        <option value="hi">हिन्दी</option>
+    </select>
+
+    <div class="toggle-mode" onclick="toggleMode()">🌙</div>
+
+    <div class="logo">
+    🧬
+    <span id="logoText">Biometric Health Tracker</span>
+    </div>
+
+    <h3 id="title">Login</h3>
+
+    <input type="email" id="email" placeholder="Enter Email">
+
+    <div class="password-box">
+        <input type="password" id="password" placeholder="Enter Password" onkeyup="checkStrength()">
+        <span class="eye" id="eyeIcon" onclick="togglePassword()">👁️</span>
+    </div>
+
+    <div class="strength" id="strengthText"></div>
+
+    <button class="login-btn" id="mainBtn" onclick="login()">Login</button>
+
+    <div class="link" id="forgotLink" onclick="forgotPassword()">Forgot Password?</div>
+    <div class="link" id="registerLink" onclick="toggleRegister()">Create Account</div>
+
+    <hr>
+
+    <button class="face-btn" onclick="biometricLogin('Face ID')">🔎 Login with Face ID</button>
+    <button class="finger-btn" onclick="biometricLogin('Fingerprint')">🖐 Login with Fingerprint</button>
+
+    <div class="scan" id="scanStatus"></div>
+</div>
+
+<script>
+/* ================= MULTI LANGUAGE ================= */
+const langTexts = {
+    en:{
+        title:"Login",
+        email:"Enter Email",
+        password:"Enter Password",
+        login:"Login",
+        forgot:"Forgot Password?",
+        register:"Create Account",
+        biometricFace:"Login with Face ID",
+        biometricFinger:"Login with Fingerprint",
+        logo:"Biometric Health Tracker",
+        fillFields:"Fill all fields",
+        userExists:"User already exists",
+        regSuccess:"Registration Successful!",
+        invalidLogin:"Invalid Email or Password",
+        userNotFound:"User not found",
+        enterEmail:"Enter email first",
+        passwordShown:"Password must be at least 6 chars"
+    },
+    ml:{
+        title:"ലോഗിൻ",
+        email:"ഇമെയിൽ എന്റർ ചെയ്യുക",
+        password:"പാസ്സ്‌വേഡ് എന്റർ ചെയ്യുക",
+        login:"ലോഗിൻ",
+        forgot:"പാസ്സ്‌വേഡ് മറന്നു?",
+        register:"അക്കൗണ്ട് സൃഷ്ടിക്കുക",
+        biometricFace:"ഫേസ് ഐഡി ഉപയോഗിച്ച് ലോഗിൻ",
+        biometricFinger:"ഫിംഗർപ്രിന്റ് ഉപയോഗിച്ച് ലോഗിൻ",
+        logo:"ബയോമെട്രിക് ഹെൽത്ത് ട്രാക്കർ",
+        fillFields:"എല്ലാ ഫീൽഡുകളും പൂരിപ്പിക്കുക",
+        userExists:"ഉപയോക്താവ് നിലവിലുണ്ട്",
+        regSuccess:"സജീവമാക്കിയിട്ടുണ്ട്!",
+        invalidLogin:"ഇമെയിൽ അല്ലെങ്കിൽ പാസ്സ്‌വേഡ് തെറ്റാണ്",
+        userNotFound:"ഉപയോക്താവ് ലഭ്യമല്ല",
+        enterEmail:"ദയവായി ഇമെയിൽ നൽകുക"
+    },
+    hi:{
+        title:"लॉगिन",
+        email:"ईमेल दर्ज करें",
+        password:"पासवर्ड दर्ज करें",
+        login:"लॉगिन",
+        forgot:"पासवर्ड भूल गए?",
+        register:"खाता बनाएँ",
+        biometricFace:"फेस आईडी से लॉगिन",
+        biometricFinger:"फिंगरप्रिंट से लॉगिन",
+        logo:"बायोमेट्रिक हेल्थ ट्रैकर",
+        fillFields:"सभी फ़ील्ड भरें",
+        userExists:"उपयोगकर्ता पहले से मौजूद है",
+        regSuccess:"पंजीकरण सफल!",
+        invalidLogin:"गलत ईमेल या पासवर्ड",
+        userNotFound:"उपयोगकर्ता नहीं मिला",
+        enterEmail:"कृपया ईमेल दर्ज करें"
+    }
+};
+
+function changeLang(){
+    const lang=document.getElementById("langSelect").value;
+    document.getElementById("title").innerText=langTexts[lang].title;
+    document.getElementById("email").placeholder=langTexts[lang].email;
+    document.getElementById("password").placeholder=langTexts[lang].password;
+    document.getElementById("mainBtn").innerText=langTexts[lang].login;
+    document.getElementById("forgotLink").innerText=langTexts[lang].forgot;
+    document.getElementById("registerLink").innerText=langTexts[lang].register;
+    document.getElementById("logoText").innerText=langTexts[lang].logo;
+    document.querySelector(".face-btn").innerText="🔎 "+langTexts[lang].biometricFace;
+    document.querySelector(".finger-btn").innerText="🖐 "+langTexts[lang].biometricFinger;
+}
+
+/* ================= STORAGE ================= */
+function getUsers(){ return JSON.parse(localStorage.getItem("users")) || []; }
+function saveUsers(users){ localStorage.setItem("users",JSON.stringify(users)); }
+
+/* ================= REGISTER ================= */
+function toggleRegister(){
+    const title=document.getElementById("title");
+    const btn=document.getElementById("mainBtn");
+    const lang=document.getElementById("langSelect").value;
+
+    if(title.innerText===langTexts[lang].title){
+        title.innerText="Register";
+        btn.innerText="Register";
+        btn.onclick=registerUser;
+    }else{ location.reload(); }
+}
+
+function registerUser(){
+    const email=emailVal();
+    const password=passVal();
+    const lang=document.getElementById("langSelect").value;
+
+    if(!email || !password){ alert(langTexts[lang].fillFields); return; }
+
+    let users=getUsers();
+    if(users.find(u=>u.email===email)){ alert(langTexts[lang].userExists); return; }
+
+    users.push({email,password});
+    saveUsers(users);
+    alert(langTexts[lang].regSuccess);
+    location.reload();
+}
+
+/* ================= LOGIN ================= */
+function login(){
+    const email=emailVal();
+    const password=passVal();
+    const lang=document.getElementById("langSelect").value;
+
+    const users=getUsers();
+    const user=users.find(u=>u.email===email && u.password===password);
+
+    if(user){
+        localStorage.setItem("loggedInEmail",email);
+        window.location.href="dashboard.html";
+    }else{ alert(langTexts[lang].invalidLogin); }
+}
+
+/* ================= PASSWORD STRENGTH ================= */
+function checkStrength(){
+    const pass=passVal();
+    const text=document.getElementById("strengthText");
+
+    if(pass.length<6){
+        text.innerText="Weak Password";
+        text.style.color="red";
+    } else if(pass.match(/[A-Z]/) && pass.match(/[0-9]/)){
+        text.innerText="Strong Password";
+        text.style.color="lime";
+    } else{
+        text.innerText="Medium Password";
+        text.style.color="orange";
+    }
+}
+
+/* ================= SHOW/HIDE PASSWORD ================= */
+function togglePassword(){
+    const input=document.getElementById("password");
+    const eye=document.getElementById("eyeIcon");
+
+    if(input.type==="password"){
+        input.type="text"; eye.innerText="🙈";
+    }else{ input.type="password"; eye.innerText="👁️"; }
+}
+
+/* ================= BIOMETRIC (ANIMATED) ================= */
+function biometricLogin(type){
+    const email=emailVal();
+    const lang=document.getElementById("langSelect").value;
+
+    if(!email){ alert(langTexts[lang].enterEmail); return; }
+
+    const users=getUsers();
+    if(!users.find(u=>u.email===email)){ alert(langTexts[lang].userNotFound); return; }
+
+    const scan=document.getElementById("scanStatus");
+    scan.innerHTML='<div class="scan-circle"></div>Scanning '+type+'...';
+
+    setTimeout(()=>{
+        scan.innerHTML="Biometric Verified ✅";
+        localStorage.setItem("loggedInEmail",email);
+        setTimeout(()=>{ window.location.href="dashboard.html"; },1000);
+    },2000);
+}
+
+/* ================= FORGOT PASSWORD ================= */
+function forgotPassword(){
+    const email=prompt("Enter registered email:");
+    const users=getUsers();
+    const user=users.find(u=>u.email===email);
+
+    if(user){ alert("Your Password: "+user.password); }
+    else{ alert("Email not found"); }
+}
+
+/* ================= DARK/LIGHT MODE ================= */
+function toggleMode(){ document.body.classList.toggle("light-mode"); }
+
+/* ================= HELPERS ================= */
+function emailVal(){ return document.getElementById("email").value; }
+function passVal(){ return document.getElementById("password").value; }
+</script>
+</body>
+</html>

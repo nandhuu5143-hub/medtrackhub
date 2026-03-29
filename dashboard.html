@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Health Tracker Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    display:flex;
+    justify-content:center;
+    color:white;
+}
+
+.wrapper{
+    width:95%;
+    max-width:1000px;
+    margin:20px 0;
+}
+
+/* HEADER */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logout{
+    padding:6px 14px;
+    background:#ff4b5c;
+    border:none;
+    border-radius:6px;
+    color:white;
+    cursor:pointer;
+    font-size:13px;
+}
+
+.datetime{
+    font-size:13px;
+    opacity:0.8;
+}
+
+/* CARD DESIGN */
+.card{
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(12px);
+    padding:15px;
+    border-radius:12px;
+    margin-top:15px;
+    font-size:14px;
+}
+
+/* GRID */
+.grid{
+    display:grid;
+    grid-template-columns:1fr 2fr;
+    gap:15px;
+}
+
+/* HEALTH BOXES */
+.health-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:10px;
+    margin-top:10px;
+}
+
+.health-box{
+    background:rgba(255,255,255,0.15);
+    padding:12px;
+    border-radius:10px;
+    text-align:center;
+    font-size:13px;
+}
+
+/* TABLE */
+table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+}
+
+th,td{
+    padding:8px;
+    border-bottom:1px solid rgba(255,255,255,0.2);
+    text-align:center;
+}
+
+th{
+    background:rgba(255,255,255,0.15);
+}
+
+/* EMERGENCY */
+.emergency{
+    background:rgba(255,0,0,0.15);
+    text-align:center;
+}
+
+.emergency button{
+    padding:8px 16px;
+    background:red;
+    border:none;
+    border-radius:6px;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div>
+            <h3 id="welcomeText">Welcome 👋</h3>
+            <div class="datetime" id="dateTime"></div>
+        </div>
+        <button class="logout" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="grid">
+
+        <!-- PROFILE SECTION -->
+        <div class="card">
+            <h4>Profile</h4>
+            <p><b>Email:</b> <span id="userEmail"></span></p>
+            <p><b>Status:</b> Biometric Verified ✅</p>
+            <p><b>Device:</b> Secure Access</p>
+        </div>
+
+        <!-- HEALTH OVERVIEW -->
+        <div class="card">
+            <h4>Health Overview</h4>
+
+            <div class="health-grid">
+                <div class="health-box">❤️ 78 BPM</div>
+                <div class="health-box">🩸 120/80 mmHg</div>
+                <div class="health-box">😌 Low Stress</div>
+                <div class="health-box">🚶 6,540 Steps</div>
+                <div class="health-box">😴 7h 20m Sleep</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- GRAPH -->
+    <div class="card">
+        <h4>Weekly Heart Rate Report</h4>
+        <canvas id="healthChart" height="80"></canvas>
+    </div>
+
+    <!-- HEALTH HISTORY TABLE -->
+    <div class="card">
+        <h4>Patient Health History</h4>
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Heart Rate</th>
+                <th>BP</th>
+                <th>Stress</th>
+                <th>Sleep</th>
+            </tr>
+            <tr>
+                <td>20/02/2026</td>
+                <td>76</td>
+                <td>118/79</td>
+                <td>Low</td>
+                <td>7h</td>
+            </tr>
+            <tr>
+                <td>21/02/2026</td>
+                <td>82</td>
+                <td>122/83</td>
+                <td>Medium</td>
+                <td>6h 30m</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- EMERGENCY SECTION -->
+    <div class="card emergency">
+        <h4>🚨 Emergency Support</h4>
+        <p>If abnormal health detected, send alert immediately</p>
+        <button onclick="alert('Emergency Alert Sent Successfully!')">
+            Send Emergency Alert
+        </button>
+    </div>
+
+</div>
+
+<script>
+
+/* CHECK LOGIN */
+const email = localStorage.getItem("loggedInEmail");
+
+if(!email){
+    window.location.href="login.html";
+}
+
+/* DYNAMIC NAME */
+if(email){
+    const username = email.split("@")[0];
+    document.getElementById("welcomeText").innerText =
+        "Welcome, " + username + " 👋";
+    document.getElementById("userEmail").innerText = email;
+}
+
+/* LOGOUT */
+function logout(){
+    localStorage.removeItem("loggedInEmail");
+    window.location.href="login.html";
+}
+
+/* REAL DATE & TIME */
+function updateDateTime(){
+    const now = new Date();
+    document.getElementById("dateTime").innerText =
+        now.toLocaleDateString() + " | " + now.toLocaleTimeString();
+}
+setInterval(updateDateTime,1000);
+
+/* CHART */
+const ctx = document.getElementById("healthChart").getContext("2d");
+
+new Chart(ctx,{
+    type:"line",
+    data:{
+        labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+        datasets:[{
+            label:"Heart Rate",
+            data:[72,75,78,74,80,76,79],
+            borderColor:"#00f2fe",
+            backgroundColor:"rgba(0,242,254,0.2)",
+            tension:0.4,
+            fill:true
+        }]
+    },
+    options:{
+        plugins:{
+            legend:{labels:{color:"white"}}
+        },
+        scales:{
+            x:{ticks:{color:"white"}},
+            y:{ticks:{color:"white"}}
+        }
+    }
+});
+
+</script>
+
+</body>
+</html>

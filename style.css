@@ -1,0 +1,57 @@
+body {
+  font-family: Arial;
+  background: #f4f7fb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+input {
+  width: 90%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 95%;
+  padding: 10px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #45a049;
+}
+
+.bio-btn {
+  background: #007bff;
+}
+
+.card {
+  background: #eaf3ff;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 10px;
+}
+
+.options p {
+  font-size: 12px;
+  color: blue;
+  cursor: pointer;
+}
